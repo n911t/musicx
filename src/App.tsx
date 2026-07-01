@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -7,11 +8,11 @@ export default function App() {
   const [session, setSession] = useState<boolean | null>(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
       setSession(!!data.session)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setSession(!!session)
     })
 
