@@ -24,11 +24,11 @@ export function DashboardPage() {
   }
 
   const stats = useMemo(() => {
-    const total = projects.length
-    const expired = projects.filter(p => getExpiryInfo(p.bid_validity_date).status === 'expired').length
-    const warning = projects.filter(p => getExpiryInfo(p.bid_validity_date).status === 'warning').length
-    const active = total - expired - warning
-    return { total, active, warning, expired }
+    const valid = projects.filter(p => p.project_name && p.project_name.trim())
+    const expired = valid.filter(p => getExpiryInfo(p.bid_validity_date).status === 'expired').length
+    const warning = valid.filter(p => getExpiryInfo(p.bid_validity_date).status === 'warning').length
+    const active = valid.length - expired - warning
+    return { total: valid.length, active, warning, expired }
   }, [projects])
 
   return (
