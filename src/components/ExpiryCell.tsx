@@ -8,18 +8,18 @@ interface ExpiryCellProps {
 export function ExpiryCell({ dateStr }: ExpiryCellProps) {
   const info = useMemo(() => getExpiryInfo(dateStr), [dateStr])
 
-  if (!dateStr) return <span className="text-gray-400">--</span>
+  if (!dateStr) return <span className="text-gray-400 dark:text-gray-600">--</span>
 
   const formatted = new Date(dateStr).toLocaleDateString('en-CA')
 
   if (info.status === 'normal') {
-    return <span>{formatted}</span>
+    return <span className="text-gray-700 dark:text-gray-300">{formatted}</span>
   }
 
   if (info.status === 'expired') {
     return (
-      <div className="relative w-full h-7 rounded overflow-hidden bg-red-100">
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-red-700 z-10">
+      <div className="relative w-full h-7 rounded overflow-hidden bg-red-100 dark:bg-red-900/40">
+        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-red-700 dark:text-red-300 z-10">
           {formatted}
         </span>
       </div>
@@ -33,7 +33,7 @@ export function ExpiryCell({ dateStr }: ExpiryCellProps) {
   const b = Math.round(0)
 
   return (
-    <div className="relative w-full h-7 rounded overflow-hidden bg-red-100">
+    <div className="relative w-full h-7 rounded overflow-hidden bg-red-100 dark:bg-red-900/40">
       <div
         className="absolute inset-y-0 left-0 transition-all duration-1000"
         style={{

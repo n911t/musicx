@@ -3,6 +3,7 @@ import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ThemeProvider } from './context/ThemeContext'
 
 export default function App() {
   const [session, setSession] = useState<boolean | null>(null)
@@ -21,12 +22,15 @@ export default function App() {
 
   if (session === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center dark:bg-gray-950 bg-[#f4f1ec]">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
-  if (!session) return <LoginPage onLogin={() => setSession(true)} />
-  return <DashboardPage />
+  return (
+    <ThemeProvider>
+      {!session ? <LoginPage onLogin={() => setSession(true)} /> : <DashboardPage />}
+    </ThemeProvider>
+  )
 }

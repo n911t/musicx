@@ -6,13 +6,18 @@ export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    setCurrentUserId(user?.id ?? null)
+
     const { data, error: err } = await supabase
       .from('projects')
-      .select('*')
+      .select('*, profiles(display_name)')
       .order('serial', { ascending: true })
 
     if (err) {
@@ -20,7 +25,12 @@ export function useProjects() {
       setLoading(false)
       return
     }
-    setProjects(data ?? [])
+
+    const mapped: Project[] = (data ?? []).map((item: Record<string, unknown>) => ({
+      ...(item as Project),
+      created_by_name: (item.profiles as { display_name?: string } | null)?.display_name ?? 'Unknown',
+    }))
+    setProjects(mapped)
     setLoading(false)
   }, [])
 
@@ -33,11 +43,16 @@ export function useProjects() {
     const { data, error: err } = await supabase
       .from('projects')
       .insert({ user_id: user.id } satisfies Partial<ProjectFormData>)
-      .select()
+      .select('*, profiles(display_name)')
       .single()
 
     if (err) { setError(err.message); return null }
-    setProjects(prev => [...prev, data])
+
+    const row = {
+      ...(data as unknown as Project),
+      created_by_name: ((data as Record<string, unknown>).profiles as { display_name?: string } | null)?.display_name ?? 'Unknown',
+    }
+    setProjects(prev => [...prev, row])
     return data
   }, [])
 
@@ -52,5 +67,16 @@ export function useProjects() {
     if (err) setError(err.message)
   }, [])
 
-  return { projects, loading, error, addRow, updateField, reload: load }
+  const deleteRow = useCallback(async (id: string) => {
+    setProjects(prev => prev.filter(p => p.id !== id))
+
+    const { error: err } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id)
+
+    if (err) { setError(err.message); setProjects(prev => [...prev]) }
+  }, [])
+
+  return { projects, loading, error, currentUserId, addRow, updateField, deleteRow, reload: load }
 }

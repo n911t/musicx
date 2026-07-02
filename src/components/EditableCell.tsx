@@ -7,9 +7,10 @@ interface EditableCellProps {
   onSave: (value: string) => void
   isDate?: boolean
   children?: ReactNode
+  disabled?: boolean
 }
 
-export function EditableCell({ value, type = 'text', options, onSave, isDate, children }: EditableCellProps) {
+export function EditableCell({ value, type = 'text', options, onSave, isDate, children, disabled }: EditableCellProps) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -29,6 +30,7 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
   }
 
   const startEdit = () => {
+    if (disabled) return
     setDraft(display())
     setEditing(true)
   }
@@ -44,8 +46,14 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
     if (e.key === 'Escape') { setEditing(false) }
   }
 
+  const wrapperClass = disabled
+    ? 'px-1 rounded min-h-[24px] block opacity-80'
+    : 'cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 px-1 rounded min-h-[24px] block'
+
+  const inputClass = 'w-full p-1 border rounded text-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200'
+
   if (children) {
-    if (editing) {
+    if (editing && !disabled) {
       if (options) {
         return (
           <select
@@ -54,7 +62,7 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
             onChange={e => setDraft(e.target.value)}
             onBlur={commit}
             onKeyDown={handleKeyDown}
-            className="w-full p-1 border rounded text-sm bg-white"
+            className={inputClass}
             autoFocus
           >
             <option value="">--</option>
@@ -74,21 +82,21 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
             onChange={e => setDraft(e.target.value)}
             onBlur={commit}
             onKeyDown={handleKeyDown}
-            className="w-full p-1 border rounded text-sm"
+            className={inputClass}
             autoFocus
           />
         )
       }
     }
     return (
-      <span onClick={startEdit} className="cursor-pointer hover:bg-blue-50 px-1 rounded min-h-[24px] block">
+      <span onClick={startEdit} className={wrapperClass}>
         {children}
       </span>
     )
   }
 
   if (options) {
-    if (editing) {
+    if (editing && !disabled) {
       return (
         <select
           ref={selectRef as React.RefObject<HTMLSelectElement>}
@@ -96,7 +104,7 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
           onChange={e => setDraft(e.target.value)}
           onBlur={commit}
           onKeyDown={handleKeyDown}
-          className="w-full p-1 border rounded text-sm bg-white"
+          className={inputClass}
           autoFocus
         >
           <option value="">--</option>
@@ -107,14 +115,14 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
       )
     }
     return (
-      <span onClick={startEdit} className="cursor-pointer hover:bg-blue-50 px-1 rounded min-h-[24px] block">
-        {display() || <span className="text-gray-400">--</span>}
+      <span onClick={startEdit} className={wrapperClass}>
+        {display() || <span className="text-gray-400 dark:text-gray-600">--</span>}
       </span>
     )
   }
 
   if (isDate) {
-    if (editing) {
+    if (editing && !disabled) {
       return (
         <input
           ref={inputRef}
@@ -123,20 +131,20 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
           onChange={e => setDraft(e.target.value)}
           onBlur={commit}
           onKeyDown={handleKeyDown}
-          className="w-full p-1 border rounded text-sm"
+          className={inputClass}
           autoFocus
         />
       )
     }
     return (
-      <span onClick={startEdit} className="cursor-pointer hover:bg-blue-50 px-1 rounded min-h-[24px] block">
-        {display() || <span className="text-gray-400">--</span>}
+      <span onClick={startEdit} className={wrapperClass}>
+        {display() || <span className="text-gray-400 dark:text-gray-600">--</span>}
       </span>
     )
   }
 
   if (type === 'number') {
-    if (editing) {
+    if (editing && !disabled) {
       return (
         <input
           ref={inputRef}
@@ -146,20 +154,20 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
           onChange={e => setDraft(e.target.value)}
           onBlur={commit}
           onKeyDown={handleKeyDown}
-          className="w-full p-1 border rounded text-sm"
+          className={inputClass}
           autoFocus
         />
       )
     }
     return (
-      <span onClick={startEdit} className="cursor-pointer hover:bg-blue-50 px-1 rounded min-h-[24px] block text-center">
-        {display() || <span className="text-gray-400">--</span>}
+      <span onClick={startEdit} className={`${wrapperClass} text-center`}>
+        {display() || <span className="text-gray-400 dark:text-gray-600">--</span>}
       </span>
     )
   }
 
   if (type === 'phone') {
-    if (editing) {
+    if (editing && !disabled) {
       return (
         <input
           ref={inputRef}
@@ -168,20 +176,20 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
           onChange={e => setDraft(e.target.value)}
           onBlur={commit}
           onKeyDown={handleKeyDown}
-          className="w-full p-1 border rounded text-sm"
+          className={inputClass}
           dir="ltr"
           autoFocus
         />
       )
     }
     return (
-      <span onClick={startEdit} className="cursor-pointer hover:bg-blue-50 px-1 rounded min-h-[24px] block">
-        {display() || <span className="text-gray-400">--</span>}
+      <span onClick={startEdit} className={wrapperClass}>
+        {display() || <span className="text-gray-400 dark:text-gray-600">--</span>}
       </span>
     )
   }
 
-  if (editing) {
+  if (editing && !disabled) {
     return (
       <input
         ref={inputRef}
@@ -190,15 +198,15 @@ export function EditableCell({ value, type = 'text', options, onSave, isDate, ch
         onChange={e => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={handleKeyDown}
-        className="w-full p-1 border rounded text-sm"
+        className={inputClass}
         autoFocus
       />
     )
   }
 
   return (
-    <span onClick={startEdit} className="cursor-pointer hover:bg-blue-50 px-1 rounded min-h-[24px] block">
-      {display() || <span className="text-gray-400">--</span>}
+    <span onClick={startEdit} className={wrapperClass}>
+      {display() || <span className="text-gray-400 dark:text-gray-600">--</span>}
     </span>
   )
 }

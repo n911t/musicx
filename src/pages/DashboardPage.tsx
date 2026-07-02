@@ -6,13 +6,15 @@ import { DataTable } from '../components/DataTable'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { NotificationPanel } from '../components/NotificationPanel'
 import { ExpiryBanner } from '../components/ExpiryBanner'
+import { DarkModeToggle } from '../components/DarkModeToggle'
 import { getExpiryInfo } from '../lib/expiry'
-import { LogOut, Building2, TrendingUp, Timer, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { LogOut, Building2, TrendingUp, Timer, AlertTriangle, CheckCircle2, Search } from 'lucide-react'
 
 export function DashboardPage() {
   const { t } = useTranslation()
-  const { projects, loading, error, addRow, updateField } = useProjects()
+  const { projects, loading, error, currentUserId, addRow, updateField, deleteRow } = useProjects()
   const [acknowledged, setAcknowledged] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
 
   const handleAcknowledge = (id: string) => {
     setAcknowledged(prev => new Set(prev).add(id))
@@ -32,7 +34,7 @@ export function DashboardPage() {
   }, [projects])
 
   return (
-    <div className="min-h-screen" style={{ background: '#f4f1ec' }}>
+    <div className="min-h-screen bg-[#f4f1ec] dark:bg-gray-950 transition-colors">
       <header
         className="sticky top-0 z-40 shadow-lg"
         style={{
@@ -46,12 +48,13 @@ export function DashboardPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-white leading-tight">{t('app_title')}</h1>
-              <p className="text-blue-300 text-xs">Real Estate Management</p>
+              <p className="text-blue-300 text-xs">{t('app_subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <NotificationPanel projects={projects} acknowledged={acknowledged} />
             <LanguageSwitcher />
+            <DarkModeToggle />
             <button
               onClick={handleLogout}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all cursor-pointer"
@@ -65,40 +68,40 @@ export function DashboardPage() {
 
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-              <Building2 className="text-blue-700" size={24} />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <Building2 className="text-blue-700 dark:text-blue-400" size={24} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
-              <p className="text-xs text-gray-500">إجمالي المشاريع</p>
+              <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{stats.total}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('filter_all')}</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-              <CheckCircle2 className="text-green-600" size={24} />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4">
+            <div className="w-12 h-12 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+              <CheckCircle2 className="text-green-600 dark:text-green-400" size={24} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{stats.active}</p>
-              <p className="text-xs text-gray-500">سارية المفعول</p>
+              <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{stats.active}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('filter_active')}</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-              <Timer className="text-amber-600" size={24} />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4">
+            <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
+              <Timer className="text-amber-600 dark:text-amber-400" size={24} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-amber-600">{stats.warning}</p>
-              <p className="text-xs text-gray-500">تنتهي قريبًا</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.warning}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('filter_expiring')}</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
-              <AlertTriangle className="text-red-600" size={24} />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4">
+            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+              <AlertTriangle className="text-red-600 dark:text-red-400" size={24} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-600">{stats.expired}</p>
-              <p className="text-xs text-gray-500">منتهية</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.expired}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('filter_expired')}</p>
             </div>
           </div>
         </div>
@@ -109,13 +112,27 @@ export function DashboardPage() {
           onAcknowledge={handleAcknowledge}
         />
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+        <div className="relative mb-4">
+          <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder={t('search')}
+            className="w-full pr-12 pl-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+          />
+        </div>
+
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 sm:p-6">
           <DataTable
             projects={projects}
             loading={loading}
             error={error}
+            currentUserId={currentUserId}
             onAddRow={addRow}
             onUpdateField={updateField}
+            onDeleteRow={deleteRow}
+            searchQuery={searchQuery}
           />
         </div>
       </main>

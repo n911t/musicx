@@ -30,24 +30,24 @@ export function ExpiryBanner({ projects, acknowledged, onAcknowledge }: ExpiryBa
             key={p.id}
             className={`flex items-center justify-between px-5 py-3.5 rounded-xl shadow-sm ${
               isExpired
-                ? 'bg-gradient-to-r from-red-50 to-red-50/50 border border-red-200'
-                : 'bg-gradient-to-r from-amber-50 to-amber-50/50 border border-amber-200'
+                ? 'bg-gradient-to-r from-red-50 to-red-50/50 dark:from-red-950/40 dark:to-red-950/20 border border-red-200 dark:border-red-800'
+                : 'bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-950/40 dark:to-amber-950/20 border border-amber-200 dark:border-amber-800'
             }`}
           >
             <div className="flex items-center gap-3">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                isExpired ? 'bg-red-100' : 'bg-amber-100'
+                isExpired ? 'bg-red-100 dark:bg-red-900/40' : 'bg-amber-100 dark:bg-amber-900/40'
               }`}>
                 {isExpired
-                  ? <AlertTriangle size={18} className="text-red-500" />
-                  : <CalendarClock size={18} className="text-amber-500" />
+                  ? <AlertTriangle size={18} className="text-red-500 dark:text-red-400" />
+                  : <CalendarClock size={18} className="text-amber-500 dark:text-amber-400" />
                 }
               </div>
               <div>
-                <span className={`font-semibold text-sm ${isExpired ? 'text-red-700' : 'text-amber-700'}`}>
+                <span className={`font-semibold text-sm ${isExpired ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
                   {p.project_name || `#${p.serial}`}
                 </span>
-                <span className={`text-xs mr-2 ${isExpired ? 'text-red-500' : 'text-amber-500'}`}>
+                <span className={`text-xs mr-2 ${isExpired ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-400'}`}>
                   {isExpired
                     ? t('expiry_expired')
                     : `${t('expiry_remaining')} ${Math.ceil(info.daysLeft)} ${t('expiry_days')}`
@@ -57,7 +57,7 @@ export function ExpiryBanner({ projects, acknowledged, onAcknowledge }: ExpiryBa
             </div>
             <button
               onClick={() => onAcknowledge(p.id)}
-              className="flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-xl bg-white border shadow-sm hover:bg-gray-50 text-gray-600 font-medium transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-xl bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium transition-all cursor-pointer"
             >
               <X size={14} />
               {t('expiry_ok')}

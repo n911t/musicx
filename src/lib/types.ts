@@ -21,6 +21,7 @@ export interface Project {
   user_id: string
   created_at: string
   updated_at: string
+  created_by_name: string
 }
 
-export type ProjectFormData = Omit<Project, 'id' | 'serial' | 'user_id' | 'created_at' | 'updated_at'>
+export type ProjectFormData = Omit<Project, 'id' | 'serial' | 'user_id' | 'created_at' | 'updated_at' | 'created_by_name'>
