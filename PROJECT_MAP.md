@@ -65,6 +65,7 @@
 - [x] VG13: Bid validity date countdown bar (yellow→red, sand timer effect)
 - [x] VG14: Expiry banner with OK dismiss
 - [x] VG15: Notification panel with red/yellow indicators
+- [x] VG16: deployed to GitHub Pages
 - [ ] VG16: deployed to GitHub Pages (requires Supabase credentials + repo setup)
 
 ## [FILES]
