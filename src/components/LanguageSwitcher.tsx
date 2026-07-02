@@ -14,7 +14,7 @@ export function LanguageSwitcher() {
   return (
     <button
       onClick={toggle}
-      className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 cursor-pointer"
+      className="px-3 py-1.5 text-sm rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all cursor-pointer font-medium"
     >
       {i18n.language === 'ar' ? 'English' : 'العربية'}
     </button>

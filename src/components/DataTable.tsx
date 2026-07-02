@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useReactTable,
@@ -23,8 +23,7 @@ interface DataTableProps {
 export function DataTable({ projects, loading, error, onAddRow, onUpdateField }: DataTableProps) {
   const { t, i18n } = useTranslation()
   const [noteTarget, setNoteTarget] = useState<{ id: string; text: string } | null>(null)
-  const [editingDate, setEditingDate] = useState<string | null>(null)
-  const [dateDraft, setDateDraft] = useState('')
+  const dateInputRef = useRef<HTMLInputElement>(null)
   const isRtl = i18n.language === 'ar'
 
   const maxFloors = useMemo(() =>
@@ -49,9 +48,13 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
   ]
 
   const resultColors: Record<string, string> = {
-    'قيد الدراسة': 'text-amber-600 bg-amber-50',
-    'تمت الموافقة': 'text-green-700 bg-green-50',
-    'تم الرفض': 'text-red-600 bg-red-50',
+    'قيد الدراسة': 'bg-amber-50 text-amber-700 border-amber-200',
+    'تمت الموافقة': 'bg-green-50 text-green-700 border-green-200',
+    'تم الرفض': 'bg-red-50 text-red-700 border-red-200',
+  }
+
+  const handleDatePick = (id: string, value: string) => {
+    onUpdateField(id, 'bid_validity_date', value || null)
   }
 
   const columns = useMemo<ColumnDef<Project>[]>(() => [
@@ -61,7 +64,7 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
       accessorKey: 'serial',
       size: 50,
       cell: ({ row }) => (
-        <span className="text-gray-500 text-center block">{row.original.serial}</span>
+        <span className="text-gray-400 text-center block text-xs font-medium">{row.original.serial}</span>
       ),
     },
     {
@@ -141,7 +144,7 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
             onSave={v => onUpdateField(row.original.id, 'floor_count', v === '' ? null : Number(v))}
           >
             <span
-              className="font-medium text-center block"
+              className="font-semibold text-center block text-sm"
               style={{ color: `rgba(37, 99, 235, ${opacity})` }}
             >
               {val || <span className="text-gray-400">--</span>}
@@ -165,11 +168,11 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
             onSave={v => onUpdateField(row.original.id, 'approved_plans', v === 'yes' ? true : v === 'no' ? false : null)}
           >
             {boolVal === true ? (
-              <span className="text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs font-medium">
+              <span className="text-green-700 bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-lg text-xs font-semibold">
                 {t('yes')}
               </span>
             ) : boolVal === false ? (
-              <span className="text-red-600 bg-red-50 px-2 py-0.5 rounded text-xs font-medium">
+              <span className="text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-lg text-xs font-semibold">
                 {t('no')}
               </span>
             ) : (
@@ -208,39 +211,23 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
       header: t('bid_validity_date'),
       accessorKey: 'bid_validity_date',
       size: 130,
-      cell: ({ row }) => {
-        const id = row.original.id
-        if (editingDate === id) {
-          return (
-            <input
-              type="date"
-              value={dateDraft}
-              autoFocus
-              onChange={e => setDateDraft(e.target.value)}
-              onBlur={e => {
-                onUpdateField(id, 'bid_validity_date', e.target.value || null)
-                setEditingDate(null)
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-                if (e.key === 'Escape') setEditingDate(null)
-              }}
-              className="w-full p-1 border rounded text-sm"
-            />
-          )
-        }
-        return (
+      cell: ({ row }) => (
+        <div className="relative">
           <div
-            onClick={() => {
-              setEditingDate(id)
-              setDateDraft(row.original.bid_validity_date || '')
-            }}
+            onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
             className="cursor-pointer"
           >
             <ExpiryCell dateStr={row.original.bid_validity_date} />
           </div>
-        )
-      },
+          <input
+            ref={dateInputRef}
+            type="date"
+            defaultValue={row.original.bid_validity_date || ''}
+            onChange={e => handleDatePick(row.original.id, e.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+          />
+        </div>
+      ),
     },
     {
       id: 'new_bid_issue',
@@ -281,7 +268,7 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
       id: 'result',
       header: t('result'),
       accessorKey: 'result',
-      size: 110,
+      size: 120,
       cell: ({ row }) => {
         const val = row.original.result
         const colorClass = resultColors[val] || ''
@@ -292,7 +279,7 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
             onSave={v => onUpdateField(row.original.id, 'result', v)}
           >
             {val ? (
-              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}>
+              <span className={`inline-block px-3 py-0.5 rounded-lg text-xs font-semibold border ${colorClass}`}>
                 {val}
               </span>
             ) : (
@@ -306,18 +293,18 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
       id: 'notes',
       header: t('notes'),
       accessorKey: 'notes',
-      size: 90,
+      size: 70,
       cell: ({ row }) => {
         const hasNotes = row.original.notes && row.original.notes.trim().length > 0
         return (
           <div className="flex justify-center">
             <button
               onClick={() => setNoteTarget({ id: row.original.id, text: row.original.notes })}
-              className="cursor-pointer"
+              className="cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
               title={row.original.notes || t('notes')}
             >
               <StickyNote
-                size={20}
+                size={18}
                 className={hasNotes ? 'text-green-600 fill-green-200' : 'text-red-400'}
               />
             </button>
@@ -329,7 +316,7 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
       id: 'bid_link',
       header: t('bid_link'),
       accessorKey: 'bid_link',
-      size: 120,
+      size: 100,
       cell: ({ row }) => {
         const url = row.original.bid_link
         return url ? (
@@ -337,9 +324,9 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 underline inline-flex items-center gap-1"
+            className="text-blue-600 underline inline-flex items-center gap-1 text-xs hover:text-blue-800"
           >
-            {t('bid_link')} <ExternalLink size={14} />
+            {t('bid_link')} <ExternalLink size={12} />
           </a>
         ) : (
           <EditableCell
@@ -350,7 +337,7 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
         )
       },
     },
-  ], [t, buildingTypeOptions, resultOptions, yesNoOptions, onUpdateField, editingDate, dateDraft, maxFloors])
+  ], [t, buildingTypeOptions, resultOptions, yesNoOptions, onUpdateField, maxFloors])
 
   const table = useReactTable({
     data: projects,
@@ -366,34 +353,42 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
   }
 
   if (loading) {
-    return <div className="flex justify-center py-12 text-gray-500">{t('loading')}</div>
+    return (
+      <div className="flex justify-center py-16">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   if (error) {
-    return <div className="flex justify-center py-12 text-red-500">{error}</div>
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+        {error}
+      </div>
+    )
   }
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-end mb-4">
         <button
           onClick={onAddRow}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 text-sm font-semibold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
         >
           <Plus size={18} />
           {t('add_row')}
         </button>
       </div>
 
-      <div className="overflow-auto border rounded-lg shadow-sm" dir={isRtl ? 'rtl' : 'ltr'}>
-        <table className="w-full border-collapse text-sm" style={{ minWidth: 1450 }}>
+      <div className="overflow-x-auto rounded-xl" dir={isRtl ? 'rtl' : 'ltr'}>
+        <table className="w-full border-collapse text-sm" style={{ minWidth: 1480 }}>
           <thead>
             {table.getHeaderGroups().map(hg => (
-              <tr key={hg.id} className="bg-gray-50 border-b">
+              <tr key={hg.id}>
                 {hg.headers.map(h => (
                   <th
                     key={h.id}
-                    className="px-3 py-2 text-right font-medium text-gray-600 border-l last:border-l-0 whitespace-nowrap"
+                    className="px-3 py-3 text-right font-semibold text-gray-500 text-xs uppercase tracking-wider bg-gray-50 border-b border-gray-200 first:rounded-tr-lg last:rounded-tl-lg"
                     style={{ width: h.getSize() !== 150 ? h.getSize() : undefined }}
                   >
                     {flexRender(h.column.columnDef.header, h.getContext())}
@@ -405,17 +400,23 @@ export function DataTable({ projects, loading, error, onAddRow, onUpdateField }:
           <tbody>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="text-center py-12 text-gray-400">
-                  {t('no_data')}
+                <td colSpan={columns.length} className="text-center py-16 text-gray-400">
+                  <div className="flex flex-col items-center gap-2">
+                    <Plus size={32} className="text-gray-300" />
+                    <span>{t('no_data')}</span>
+                  </div>
                 </td>
               </tr>
             ) : (
               table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="border-b hover:bg-gray-50 even:bg-gray-50/50">
+                <tr
+                  key={row.id}
+                  className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors even:bg-gray-50/30"
+                >
                   {row.getVisibleCells().map(cell => (
                     <td
                       key={cell.id}
-                      className="px-3 py-2 border-l last:border-l-0"
+                      className="px-3 py-2.5 border-l border-gray-100 last:border-l-0"
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
