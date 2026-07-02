@@ -15,7 +15,6 @@ export function NotificationPanel({ projects, acknowledged }: NotificationPanelP
 
   const notifications = projects
     .filter(p => {
-      if (!acknowledged.has(p.id)) return false
       const info = getExpiryInfo(p.bid_validity_date)
       return info.status === 'warning' || info.status === 'expired'
     })
